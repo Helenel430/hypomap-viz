@@ -22,7 +22,8 @@ ui <- fluidPage(
     sidebarPanel(
       width = 3,
       textInput("gene_in", "Gene symbol:", value = "Pomc",
-                placeholder = "e.g. Pomc"),
+                placeholder = "start typing, e.g. kiss"),
+      uiOutput("suggestions"),
       actionButton("go", "Look up", class = "btn-primary"),
       # let Enter in the text box trigger the Look up button
       tags$script(HTML(
@@ -48,30 +49,65 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-  # case-insensitive lookup map: lowercased symbol -> canonical symbol
-  gene_lc <- setNames(genes, tolower(genes))
+  gene_lc  <- setNames(genes, tolower(genes))   # lowercased -> canonical
+  genes_lc <- tolower(genes)
 
-  # suggest canonical symbols that start with what was typed
+  # flexible matcher: exact > prefix > substring (all case-insensitive)
+  match_genes <- function(q, n = 12) {
+    q <- tolower(trimws(q)); if (!nzchar(q)) return(character(0))
+    exact <- genes[genes_lc == q]
+    pre   <- startsWith(genes_lc, q) & genes_lc != q
+    sub   <- grepl(q, genes_lc, fixed = TRUE) & !startsWith(genes_lc, q)
+    head(unique(c(exact, sort(genes[pre]), sort(genes[sub]))), n)
+  }
   suggest <- function(q) {
-    if (!nzchar(q)) return("")
-    hits <- genes[startsWith(tolower(genes), tolower(q))]
-    if (length(hits) == 0) return("No similar symbols found.")
-    paste0("Did you mean: ", paste(head(hits, 6), collapse = ", "), "?")
+    m <- match_genes(q, 6)
+    if (length(m) == 0) return("No similar symbols found.")
+    paste0("Did you mean: ", paste(m, collapse = ", "), "?")
   }
 
-  # resolve only when "Look up" is clicked (or Enter); fires once on load too
-  looked <- eventReactive(input$go, ignoreNULL = FALSE, {
+  current    <- reactiveVal("Pomc")   # canonical gene currently shown
+  last_query <- reactiveVal("Pomc")
+
+  # live suggestions as you type (clickable)
+  output$suggestions <- renderUI({
     q <- trimws(input$gene_in)
-    list(query = q, gene = unname(gene_lc[tolower(q)]))
+    if (nchar(q) < 2) return(NULL)
+    # already showing an exact valid gene? hide the list
+    if (tolower(q) %in% genes_lc && !is.na(current()) &&
+        tolower(current()) == tolower(q)) return(NULL)
+    m <- match_genes(q, 12)
+    if (length(m) == 0)
+      return(tags$div(style = "color:#999;font-size:13px;margin:4px 0", "no matches"))
+    tags$div(
+      style = paste("margin:4px 0 8px; max-height:190px; overflow-y:auto;",
+                    "border:1px solid #e3e3e3; border-radius:6px"),
+      lapply(m, function(gn) tags$a(
+        href = "#",
+        onclick = sprintf(
+          "Shiny.setInputValue('picked','%s',{priority:'event'});return false;", gn),
+        style = paste("display:block; padding:5px 10px; text-decoration:none;",
+                      "color:#1a4f8a; border-bottom:1px solid #f4f4f4"),
+        gn)))
+  })
+
+  # resolve typed text on Look up / Enter
+  observeEvent(input$go, {
+    q <- trimws(input$gene_in); last_query(q)
+    current(unname(gene_lc[tolower(q)]))   # canonical symbol, or NA if not found
+  })
+  # a suggestion was clicked (value is already canonical)
+  observeEvent(input$picked, {
+    current(input$picked); last_query(input$picked)
+    updateTextInput(session, "gene_in", value = input$picked)
   })
 
   g <- reactive({
-    L <- looked()
-    validate(need(nzchar(L$query), "Type a gene symbol and click Look up."))
-    validate(need(!is.na(L$gene), sprintf(
-      "Gene '%s' not found — symbols are case-sensitive (e.g. Pomc, Agrp). %s",
-      L$query, suggest(L$query))))
-    L$gene
+    cur <- current()
+    validate(need(!is.null(cur) && !is.na(cur) && nzchar(cur), sprintf(
+      "Gene '%s' not found — try one of the suggestions. %s",
+      last_query(), suggest(last_query()))))
+    cur
   })
 
   output$gtitle <- renderText(g())
