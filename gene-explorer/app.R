@@ -22,7 +22,7 @@ ui <- fluidPage(
     sidebarPanel(
       width = 3,
       textInput("gene_in", "Gene symbol:", value = "Pomc",
-                placeholder = "start typing, e.g. kiss"),
+                placeholder = "start typing, e.g. igf"),
       uiOutput("suggestions"),
       actionButton("go", "Look up", class = "btn-primary"),
       # let Enter in the text box trigger the Look up button
