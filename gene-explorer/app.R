@@ -102,12 +102,14 @@ server <- function(input, output, session) {
       pctExpressing  = stats$byct$pct_expressing[gg, ],
       meanExpressing = stats$byct$mean_expressing[gg, ],
       percentile     = stats$byct$percentile[gg, ],
-      top5           = stats$byct$percentile[gg, ] >= 95,
+      top5           = ifelse(stats$byct$percentile[gg, ] >= 95, "Yes", ""),
       row.names = NULL, check.names = FALSE)
   })
 
   output$cttable <- renderDT({
     datatable(ctdf(), rownames = FALSE,
+              colnames = c("Cell type", "#Cells", "#Expressing", "%Expressing",
+                           "Mean (expr. cells)", "Percentile", "Top 5%"),
               options = list(pageLength = 18, dom = "t")) |>
       formatRound(c("pctExpressing", "meanExpressing", "percentile"), 2)
   })
