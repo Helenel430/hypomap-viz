@@ -21,11 +21,16 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       width = 3,
-      selectizeInput("gene", "Gene:", choices = NULL,
-                     options = list(placeholder = "type a gene, e.g. Pomc")),
-      helpText("RNA assay, log-normalized. 51,245 cells across 18 cell types.",
-               "Percentile ranks genes by mean expression among expressing cells,",
-               "over all detected genes.")
+      textInput("gene_in", "Gene symbol:", value = "Pomc",
+                placeholder = "e.g. Pomc"),
+      actionButton("go", "Look up", class = "btn-primary"),
+      # let Enter in the text box trigger the Look up button
+      tags$script(HTML(
+        "document.addEventListener('keydown',function(e){if(e.key==='Enter'&&document.activeElement&&document.activeElement.id==='gene_in'){var b=document.getElementById('go');if(b)b.click();}});")),
+      tags$br(), tags$br(),
+      helpText("Type a gene symbol (case-insensitive) and click Look up or press Enter.",
+               "RNA assay, log-normalized; 51,245 cells across 18 cell types.",
+               "Percentile ranks genes by mean expression among expressing cells.")
     ),
     mainPanel(
       width = 9,
@@ -43,13 +48,30 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-  updateSelectizeInput(session, "gene", choices = genes,
-                       selected = "Pomc", server = TRUE)
+  # case-insensitive lookup map: lowercased symbol -> canonical symbol
+  gene_lc <- setNames(genes, tolower(genes))
+
+  # suggest canonical symbols that start with what was typed
+  suggest <- function(q) {
+    if (!nzchar(q)) return("")
+    hits <- genes[startsWith(tolower(genes), tolower(q))]
+    if (length(hits) == 0) return("No similar symbols found.")
+    paste0("Did you mean: ", paste(head(hits, 6), collapse = ", "), "?")
+  }
+
+  # resolve only when "Look up" is clicked (or Enter); fires once on load too
+  looked <- eventReactive(input$go, ignoreNULL = FALSE, {
+    q <- trimws(input$gene_in)
+    list(query = q, gene = unname(gene_lc[tolower(q)]))
+  })
 
   g <- reactive({
-    req(input$gene)
-    validate(need(input$gene %in% genes, "Gene not found in this dataset."))
-    input$gene
+    L <- looked()
+    validate(need(nzchar(L$query), "Type a gene symbol and click Look up."))
+    validate(need(!is.na(L$gene), sprintf(
+      "Gene '%s' not found — symbols are case-sensitive (e.g. Pomc, Agrp). %s",
+      L$query, suggest(L$query))))
+    L$gene
   })
 
   output$gtitle <- renderText(g())
