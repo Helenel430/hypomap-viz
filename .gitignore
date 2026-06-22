@@ -1,0 +1,22 @@
+# --- Raw data: too big for GitHub (the .rds is ~1.75 GB) ---
+data/
+*.rds
+
+# --- ShinyCell-generated app data (regenerate with prepare_app.R) ---
+# These are large (expression stored in HDF5). Code in shinyApp/ IS tracked,
+# but the generated data files are not.
+shinyApp/sc1conf.rds
+shinyApp/sc1def.rds
+shinyApp/sc1gene.rds
+shinyApp/sc1meta.rds
+shinyApp/sc1gexpr.h5
+
+# --- RStudio / R session cruft ---
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+
+# --- OS cruft ---
+.DS_Store
