@@ -114,8 +114,6 @@ server <- function(input, output, session) {
 
   output$globalbox <- renderUI({
     row <- stats$global[stats$global$gene == g(), ]
-    flag <- if (isTRUE(row$top5pct))
-      "<b style='color:#0a7a4f'>Yes — top 5%</b>" else "No"
     HTML(sprintf(
       "<ul style='font-size:15px;line-height:1.7'>
         <li><b>%% of cells expressing (global):</b> %.2f%%
@@ -123,10 +121,9 @@ server <- function(input, output, session) {
         <li><b>Mean expression (among expressing cells):</b> %.3f</li>
         <li><b>Expression percentile:</b> %.1f
             <span style='color:#888'>(ranked by mean-when-expressed)</span></li>
-        <li><b>Top 5%% of expressed genes?</b> %s</li>
       </ul>",
       row$pct_expressing, format(row$n_expressing, big.mark = ","),
-      format(total, big.mark = ","), row$mean_expressing, row$percentile, flag))
+      format(total, big.mark = ","), row$mean_expressing, row$percentile))
   })
 
   ctdf <- reactive({
