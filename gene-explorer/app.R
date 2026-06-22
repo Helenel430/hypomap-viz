@@ -40,7 +40,14 @@ ui <- fluidPage(
       tags$hr(),
       h4("By cell type"),
       tabsetPanel(
-        tabPanel("Table", br(), DTOutput("cttable")),
+        tabPanel("Table", br(), DTOutput("cttable"),
+                 tags$p(style = "color:#777;font-size:12.5px;margin-top:10px;line-height:1.55",
+                   HTML("<b>%Expressing</b> / <b>#Expressing</b> are out of this cell type's <b>#Cells</b>.
+                         <b>Mean expr.</b> averages log-normalized expression over only the expressing cells.
+                         <b>Percentile (within cell type)</b> ranks this gene against all genes detected in
+                         that same cell type, by mean-when-expressed; <b>Top 5% (in cell type)</b> = ≥95th
+                         percentile within the cell type. <b>Percentile (global)</b> is the gene's
+                         dataset-wide rank (identical in every row; matches the summary above)."))),
         tabPanel("% expressing", br(), plotOutput("pctplot", height = 430)),
         tabPanel("Mean (expressing cells)", br(), plotOutput("meanplot", height = 430))
       )
@@ -128,23 +135,28 @@ server <- function(input, output, session) {
 
   ctdf <- reactive({
     gg <- g()
+    pct_within <- stats$byct$percentile[gg, ]
+    pct_global <- stats$global$percentile[stats$global$gene == gg]
     data.frame(
       CellType       = cts,
       nCells         = as.integer(stats$cell_counts),
       nExpressing    = as.integer(stats$byct$n_expressing[gg, ]),
       pctExpressing  = stats$byct$pct_expressing[gg, ],
       meanExpressing = stats$byct$mean_expressing[gg, ],
-      percentile     = stats$byct$percentile[gg, ],
-      top5           = ifelse(stats$byct$percentile[gg, ] >= 95, "Yes", ""),
+      pctWithin      = pct_within,
+      pctGlobal      = pct_global,
+      top5           = ifelse(!is.na(pct_within) & pct_within >= 95, "Yes", ""),
       row.names = NULL, check.names = FALSE)
   })
 
   output$cttable <- renderDT({
     datatable(ctdf(), rownames = FALSE,
               colnames = c("Cell type", "#Cells", "#Expressing", "%Expressing",
-                           "Mean (expr. cells)", "Percentile", "Top 5%"),
+                           "Mean expr. (expressing cells)",
+                           "Percentile (within cell type)", "Percentile (global)",
+                           "Top 5% (in cell type)"),
               options = list(pageLength = 18, dom = "t")) |>
-      formatRound(c("pctExpressing", "meanExpressing", "percentile"), 2)
+      formatRound(c("pctExpressing", "meanExpressing", "pctWithin", "pctGlobal"), 2)
   })
 
   output$pctplot <- renderPlot({
