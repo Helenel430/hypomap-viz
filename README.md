@@ -62,15 +62,40 @@ remotes::install_url(
   (the interactive version of the expression-by-cell-type table)
 - **Cell-type proportions** across groups
 
+## Gene-expression lookup (lightweight, no UMAP/tSNE)
+
+A second, much lighter app for pure expression questions — type a gene and get:
+
+- **% of cells expressing** it (globally and per cell type) — detection rate
+- **Mean expression among expressing cells** (intensity when "on")
+- **Expression percentile** (genes ranked by mean-when-expressed; flags the top 5%)
+
+It runs off a tiny precomputed file (`gene-explorer/gene_stats.rds`, ~4 MB) — **no
+1.75 GB `.rds` needed**, so it's fully self-contained in this repo:
+
+```r
+shiny::runApp("gene-explorer")
+```
+
+To regenerate the stats (only if the source data changes):
+
+```r
+source("compute_gene_stats.R")   # reads the .rds, rewrites gene-explorer/gene_stats.rds
+```
+
 ## Repo layout
 
 ```
 hypomap-viz/
-├─ prepare_app.R     # generates the app from the .rds   (tracked)
-├─ shinyApp/         # the Shiny app
-│   ├─ ui.R, server.R, *.R   # app code               (tracked)
-│   └─ sc1*.rds / .h5         # generated data         (git-ignored)
-├─ data/             # put the .rds here               (git-ignored)
+├─ prepare_app.R         # generates the UMAP app from the .rds      (tracked)
+├─ shinyApp/             # ShinyCell UMAP/tSNE explorer
+│   ├─ ui.R, server.R, *.R   # app code                            (tracked)
+│   └─ sc1*.rds / .h5         # generated data                     (git-ignored)
+├─ compute_gene_stats.R  # precomputes per-gene stats from the .rds  (tracked)
+├─ gene-explorer/        # lightweight gene-lookup app
+│   ├─ app.R                  # app code                            (tracked)
+│   └─ gene_stats.rds         # ~4 MB precomputed stats             (tracked)
+├─ data/                 # put the .rds here                        (git-ignored)
 ├─ .gitignore
 └─ README.md
 ```

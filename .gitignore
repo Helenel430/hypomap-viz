@@ -1,6 +1,8 @@
 # --- Raw data: too big for GitHub (the .rds is ~1.75 GB) ---
 data/
 *.rds
+# ...but DO track the tiny precomputed gene-lookup stats (~4 MB)
+!gene-explorer/gene_stats.rds
 
 # --- ShinyCell-generated app data (regenerate with prepare_app.R) ---
 # These are large (expression stored in HDF5). Code in shinyApp/ IS tracked,
