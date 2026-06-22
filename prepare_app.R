@@ -1,7 +1,9 @@
 # ============================================================
 # prepare_app.R
-# Build the "HypoMap Visualization" interactive Shiny explorer from the
+# Build the "Romanov_10x" interactive Shiny explorer from the
 # GSE132730 hypothalamus Seurat object, using ShinyCell.
+# ("Romanov_10x" follows HypoMap's [FirstAuthor]_[technique] dataset-naming
+#  convention; GSE132730 = Romanov et al. 2020, mouse hypothalamus, 10x.)
 #
 # Run this ONCE locally to (re)generate the app into shinyApp/.
 # The heavy data files it produces are git-ignored, so each user
@@ -55,7 +57,7 @@ makeShinyApp(
   gex.assay         = "RNA",
   gex.slot          = "data",
   gene.mapping      = FALSE,
-  shiny.title       = "HypoMap Visualization",
+  shiny.title       = "Romanov_10x",
   shiny.dir         = "shinyApp/",
   default.gene1     = markers[1],
   default.gene2     = markers[2],

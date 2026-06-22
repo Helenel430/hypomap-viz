@@ -18,7 +18,7 @@ list(tags$style(HTML(".navbar-default .navbar-nav { font-weight: bold; font-size
  
    
 ### Page title 
-titlePanel("HypoMap Visualization"),  
+titlePanel("Romanov_10x"),
 navbarPage( 
   NULL,  
  ### Tab1.a1: cellInfo vs geneExpr on dimRed 

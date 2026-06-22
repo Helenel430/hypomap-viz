@@ -1,10 +1,16 @@
-# HypoMap Visualization
+# Romanov_10x
 
-An interactive [Shiny](https://shiny.posit.co/) explorer for the mouse
-hypothalamus single-cell dataset (GEO **GSE132730**), built with
+An interactive [Shiny](https://shiny.posit.co/) explorer for the **Romanov_10x**
+mouse hypothalamus single-cell dataset, built with
 [ShinyCell](https://github.com/SGDDNB/ShinyCell). Type a gene and see its
 expression painted on the UMAP, compare cell types, view proportions, and more —
 all running locally in your browser.
+
+**Dataset:** GEO [GSE132730](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE132730)
+— Romanov et al. 2020, *"Design logic of hypothalamus development mapped by
+single-cell RNA-seq"* (mouse, 10x Genomics, ages E15.5–P23). The label
+`Romanov_10x` follows the HypoMap atlas's `[FirstAuthor]_[technique]`
+dataset-naming convention.
 
 > **Note on data:** the raw Seurat object (~1.75 GB) and the app's generated
 > expression files are **not** stored in this repo (GitHub caps files at 100 MB).
