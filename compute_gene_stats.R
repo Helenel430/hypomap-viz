@@ -19,15 +19,23 @@ cat("Loading", rds_path, "...\n")
 obj <- suppressWarnings(suppressMessages(UpdateSeuratObject(readRDS(rds_path))))
 DefaultAssay(obj) <- "RNA"
 
+# --- HypoMap cell-selection criterion for this dataset (RomanovDev10x) -----
+# HypoMap kept ONLY the P23 timepoint (~2,152 cells, ~4% of 51,199), dropping
+# all embryonic + earlier postnatal cells (E15.5/E17.5/P0/P2/P10). Source:
+# HypoMap_study_display_card.csv. We replicate that here -> P23 only.
+keep_ages <- "P23"
+
 # --- expression matrix (genes x cells), log-normalized -------------------
 expr <- as(GetAssayData(obj, assay = "RNA", layer = "data"), "CsparseMatrix")
 grp  <- obj@meta.data[["Annotation"]]
-keep <- !is.na(grp)
+age  <- obj@meta.data[["Age"]]
+keep <- !is.na(grp) & age %in% keep_ages
 expr <- expr[, keep]
 grp  <- droplevels(factor(grp[keep]))
 genes <- rownames(expr)
 ncell <- ncol(expr)
-cat(length(genes), "genes x", ncell, "cells;", nlevels(grp), "cell types\n")
+cat(sprintf("HypoMap criterion = Age %s | %d genes x %d cells; %d cell types\n",
+            paste(keep_ages, collapse = "/"), length(genes), ncell, nlevels(grp)))
 
 # detection matrix: every nonzero -> 1
 det <- expr; det@x <- rep(1, length(det@x))

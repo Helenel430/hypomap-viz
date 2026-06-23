@@ -70,7 +70,13 @@ A second, much lighter app for pure expression questions — type a gene and get
 - **Mean expression among expressing cells** (intensity when "on")
 - **Expression percentile** (genes ranked by mean-when-expressed; flags the top 5%)
 
-It runs off a tiny precomputed file (`gene-explorer/gene_stats.rds`, ~4 MB) — **no
+**Cell cohort:** to match the HypoMap atlas, the stats are computed on **P23 cells
+only** (2,415 cells, 7 cell types) — the same `RomanovDev10x` subset HypoMap used
+(timepoint P23 only; embryonic + earlier postnatal cells dropped; see
+`HypoMap_study_display_card.csv`). To use all 51,245 cells instead, set
+`keep_ages` near the top of `compute_gene_stats.R`.
+
+It runs off a tiny precomputed file (`gene-explorer/gene_stats.rds`, ~2 MB) — **no
 1.75 GB `.rds` needed**, so it's fully self-contained in this repo:
 
 ```r

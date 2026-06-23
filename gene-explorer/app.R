@@ -30,7 +30,9 @@ ui <- fluidPage(
         "document.addEventListener('keydown',function(e){if(e.key==='Enter'&&document.activeElement&&document.activeElement.id==='gene_in'){var b=document.getElementById('go');if(b)b.click();}});")),
       tags$br(), tags$br(),
       helpText("Type a gene symbol (case-insensitive) and click Look up or press Enter.",
-               "RNA assay, log-normalized; 51,245 cells across 18 cell types.",
+               sprintf(paste("RNA assay, log-normalized; %s P23 cells across %d cell",
+                             "types — the HypoMap RomanovDev10x subset (P23 only)."),
+                       format(total, big.mark = ","), length(cts)),
                "Percentile ranks genes by mean expression among expressing cells.")
     ),
     mainPanel(
