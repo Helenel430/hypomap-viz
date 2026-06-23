@@ -122,17 +122,25 @@ server <- function(input, output, session) {
   output$gtitle <- renderText(g())
 
   output$globalbox <- renderUI({
-    row <- stats$global[stats$global$gene == g(), ]
+    gname <- g()
+    row <- stats$global[stats$global$gene == gname, ]
+    ncells <- format(total, big.mark = ",")
+    if (row$n_expressing == 0)
+      return(HTML(sprintf(
+        "<ul style='font-size:15px;line-height:1.7'><li><i>%s</i> is not detected
+         in any of the %s P23 cells in this dataset.</li></ul>", gname, ncells)))
     HTML(sprintf(
       "<ul style='font-size:15px;line-height:1.7'>
-        <li><b>%% of cells expressing (global):</b> %.2f%%
-            &nbsp;<span style='color:#888'>(%s of %s cells)</span></li>
-        <li><b>Mean expression (among expressing cells):</b> %.3f</li>
-        <li><b>Expression percentile:</b> %.1f
-            <span style='color:#888'>(ranked by mean-when-expressed)</span></li>
+        <li><i>%s</i> is expressed in <b>%.2f%%</b> of cells — it is detected in
+            %s of the %s P23 cells in this dataset.</li>
+        <li>Averaged over only the cells that express it, its mean (log-normalized)
+            expression is <b>%.3f</b>.</li>
+        <li>Ranked by that mean-when-expressed level, <i>%s</i> sits in the
+            <b>%.1fth percentile</b> of all expressed genes — more highly expressed,
+            when on, than about %.0f%% of the genes in this dataset.</li>
       </ul>",
-      row$pct_expressing, format(row$n_expressing, big.mark = ","),
-      format(total, big.mark = ","), row$mean_expressing, row$percentile))
+      gname, row$pct_expressing, format(row$n_expressing, big.mark = ","),
+      ncells, row$mean_expressing, gname, row$percentile, row$percentile))
   })
 
   ctdf <- reactive({
