@@ -125,7 +125,7 @@ ui <- fluidPage(
                  tags$p(style = "color:#555;font-size:12.5px;line-height:2;margin-bottom:12px",
                         HTML(paste0(
                           "<b>%Expressing</b> = ", frac("#Expressing", "#Cells"), " &times; 100",
-                          " &mdash; the share of a cell type's cells that carry &ge;1 detected count of the",
+                          "<br>the share of a cell type's cells that carry &ge;1 detected count of the",
                           " gene, where <b>#Expressing</b> = those cells and <b>#Cells</b> = all cells of the",
                           " type. Each bar is on an absolute <b>0&ndash;100%</b> scale."))),
                  uiOutput("pctbars")),
@@ -134,7 +134,7 @@ ui <- fluidPage(
                         HTML(sprintf(paste0(
                           "<b>Mean (expressing cells)</b> = ",
                           frac("&Sigma; expression", "#Expressing"),
-                          " &mdash; the log-normalized expression summed across only the cells that express",
+                          "<br>the log-normalized expression summed across only the cells that express",
                           " the gene, divided by how many there are. Bars are scaled so a",
                           " <b>full bar = the 99th percentile</b> of all gene &times; cell-type means",
                           " (<b>%.2f</b>); a striped bar with a <b>&#9656;</b> exceeds the scale",
