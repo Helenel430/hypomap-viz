@@ -125,7 +125,7 @@ ui <- fluidPage(
                  tags$p(style = "color:#555;font-size:12.5px;line-height:2;margin-bottom:12px",
                         HTML(paste0(
                           "<b>%Expressing</b> = ", frac("<b>#Expressing</b>", "<b>#Cells</b>"), " &times; 100",
-                          "<br><b>#Expressing</b> = cells within the cell type that carry &ge;1 detected count of the gene",
+                          "<br><b>#Expressing</b> = cells within the cell type that carry &ge;1 detected count of the gene.",
                           "<br><b>#Cells</b> = all cells of the type.",
                           "<br>Each bar is on an absolute <b>0&ndash;100%</b> scale."))),
                  uiOutput("pctbars")),
@@ -133,12 +133,12 @@ ui <- fluidPage(
                  tags$p(style = "color:#555;font-size:12.5px;line-height:2;margin-bottom:12px",
                         HTML(sprintf(paste0(
                           "<b>Mean (expressing cells)</b> = ",
-                          frac("&Sigma; expression", "#Expressing"),
-                          "<br>the log-normalized expression summed across only the cells that express",
-                          " the gene, divided by how many there are. Bars are scaled so a",
-                          " <b>full bar = the 99th percentile</b> of all gene &times; cell-type means",
-                          " (<b>%.2f</b>); a striped bar with a <b>&#9656;</b> exceeds the scale",
-                          " (read the number)."),
+                          frac("<b>&Sigma; expression</b>", "<b>#Expressing</b>"),
+                          "<br><b>&Sigma; expression</b> = the gene's log-normalized expression summed across those expressing cells.",
+                          "<br><b>#Expressing</b> = cells within the cell type that carry &ge;1 detected count of the gene.",
+                          "<br>Bars are scaled so a <b>full bar = the 99th percentile</b> of all gene &times;",
+                          " cell-type means (<b>%.2f</b>); a striped bar with a <b>&#9656;</b> exceeds the",
+                          " scale (read the number)."),
                           mean_scale))),
                  uiOutput("meanbars"))
       )
