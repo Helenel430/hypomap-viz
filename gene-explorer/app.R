@@ -118,10 +118,7 @@ ui <- fluidPage(
                      " detected in the same cell type by its Mean expr. value. A value of 95 means the",
                      " gene is expressed more strongly than 95% of the genes active in that cell type.",
                      "<br><b>Top 5% (in cell type)</b>: flags genes that reach the 95th percentile or",
-                     " above within the cell type.",
-                     "<br><b>Percentile (global)</b>: the same rank taken across the whole cohort rather",
-                     " than within a single cell type, so it is identical in every row and matches the",
-                     " summary above.")))),
+                     " above within the cell type.")))),
         tabPanel("% expressing", br(),
                  tags$p(style = "color:#555;font-size:12.5px;line-height:2;margin-bottom:12px",
                         HTML(paste0(
@@ -241,7 +238,6 @@ server <- function(input, output, session) {
   ctdf <- reactive({
     gg <- g()
     pct_within <- stats$byct$percentile[gg, ]
-    pct_global <- stats$global$percentile[stats$global$gene == gg]
     data.frame(
       CellType       = cts,
       nCells         = as.integer(stats$cell_counts),
@@ -249,7 +245,6 @@ server <- function(input, output, session) {
       pctExpressing  = stats$byct$pct_expressing[gg, ],
       meanExpressing = stats$byct$mean_expressing[gg, ],
       pctWithin      = pct_within,
-      pctGlobal      = pct_global,
       top5           = ifelse(!is.na(pct_within) & pct_within >= 95, "Yes", ""),
       row.names = NULL, check.names = FALSE)
   })
@@ -258,10 +253,10 @@ server <- function(input, output, session) {
     datatable(ctdf(), rownames = FALSE,
               colnames = c("Cell type", "#Cells", "#Expressing", "%Expressing",
                            "Mean expr. (expressing cells)",
-                           "Percentile (within cell type)", "Percentile (global)",
+                           "Percentile (within cell type)",
                            "Top 5% (in cell type)"),
               options = list(pageLength = 18, dom = "t")) |>
-      formatRound(c("pctExpressing", "meanExpressing", "pctWithin", "pctGlobal"), 2)
+      formatRound(c("pctExpressing", "meanExpressing", "pctWithin"), 2)
   })
 
   output$pctbars <- renderUI(
