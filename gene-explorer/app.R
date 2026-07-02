@@ -71,6 +71,13 @@ htmlBars <- function(labels, values, counts, maxval, fmt = "%.2f", accent = "#3a
   tags$div(style = "margin-top:6px", header, rows)
 }
 
+# render "num / den" as a real stacked fraction (numerator over a rule over
+# denominator) so caption formulas read like maths rather than inline text.
+frac <- function(num, den) sprintf(paste0(
+  "<span style='display:inline-block;vertical-align:middle;text-align:center;margin:0 4px'>",
+  "<span style='display:block;padding:0 8px 1px;border-bottom:1.5px solid #888'>%s</span>",
+  "<span style='display:block;padding:1px 8px 0'>%s</span></span>"), num, den)
+
 ui <- fluidPage(
   titlePanel("Romanov_10x — Gene Expression Lookup"),
   sidebarLayout(
@@ -115,22 +122,23 @@ ui <- fluidPage(
                          rather than within a single cell type, which is why it is identical in every row
                          and matches the summary above."))),
         tabPanel("% expressing", br(),
-                 tags$p(style = "color:#555;font-size:12.5px;margin-bottom:12px",
+                 tags$p(style = "color:#555;font-size:12.5px;line-height:2;margin-bottom:12px",
                         HTML(paste0(
-                          "<b>%Expressing</b> = cells of the type with &ge;1 detected count of the gene",
-                          " &divide; all cells of the type &times; 100 &nbsp;(that is,",
-                          " <b>#Expressing &divide; #Cells</b>). Each bar is drawn on an absolute",
-                          " <b>0&ndash;100%</b> scale (a full bar = 100% of the cell type)."))),
+                          "<b>%Expressing</b> = ", frac("#Expressing", "#Cells"), " &times; 100",
+                          " &mdash; the share of a cell type's cells that carry &ge;1 detected count of the",
+                          " gene, where <b>#Expressing</b> = those cells and <b>#Cells</b> = all cells of the",
+                          " type. Each bar is on an absolute <b>0&ndash;100%</b> scale."))),
                  uiOutput("pctbars")),
         tabPanel("Mean (expressing cells)", br(),
-                 tags$p(style = "color:#555;font-size:12.5px;margin-bottom:12px",
+                 tags$p(style = "color:#555;font-size:12.5px;line-height:2;margin-bottom:12px",
                         HTML(sprintf(paste0(
-                          "<b>Mean (expressing cells)</b> = log-normalized expression summed over the",
-                          " cells that express the gene &divide; <b>#Expressing</b> (non-expressing cells",
-                          " excluded). Bars are scaled so a <b>full bar = the 99th percentile</b> of all",
-                          " gene &times; cell-type mean values (<b>%.2f</b>) &mdash; chosen over the true",
-                          " maximum so outliers don't squash everything else. A striped bar with a",
-                          " <b>&#9656;</b> marker means the value runs past the scale (read the number)."),
+                          "<b>Mean (expressing cells)</b> = ",
+                          frac("&Sigma; expression", "#Expressing"),
+                          " &mdash; the log-normalized expression summed across only the cells that express",
+                          " the gene, divided by how many there are. Bars are scaled so a",
+                          " <b>full bar = the 99th percentile</b> of all gene &times; cell-type means",
+                          " (<b>%.2f</b>); a striped bar with a <b>&#9656;</b> exceeds the scale",
+                          " (read the number)."),
                           mean_scale))),
                  uiOutput("meanbars"))
       )
