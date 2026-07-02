@@ -9,7 +9,6 @@
 # ============================================================
 library(shiny)
 library(DT)
-library(ggplot2)
 
 stats <- readRDS("gene_stats.rds")
 genes <- stats$genes
@@ -17,6 +16,28 @@ total <- stats$total_cells
 cts   <- stats$celltypes
 # genes detected in >=1 cell — the reference set for the global percentile
 n_expressed <- sum(stats$global$n_expressing > 0)
+
+# Horizontal bar chart drawn as plain HTML/CSS — no R graphics device needed,
+# so it renders reliably everywhere. Bars are scaled to the largest value.
+htmlBars <- function(labels, values, fmt = "%.2f", accent = "#3a6ea3") {
+  keep <- !is.na(values); labels <- labels[keep]; values <- values[keep]
+  if (length(values) == 0 || max(values) <= 0)
+    return(tags$div(style = "color:#999;font-size:13px",
+                    "Not expressed in any cell type."))
+  ord <- order(values, decreasing = TRUE)
+  labels <- labels[ord]; values <- values[ord]; mx <- max(values)
+  tags$div(style = "margin-top:6px",
+    lapply(seq_along(values), function(i)
+      tags$div(style = "margin:9px 0",
+        tags$div(style = "font-size:13px;color:#333;margin-bottom:2px", labels[i]),
+        tags$div(style = "display:flex;align-items:center",
+          tags$div(style = "flex:1;background:#eef0f2;border-radius:3px;height:16px",
+            tags$div(style = sprintf(
+              "width:%.1f%%;height:100%%;border-radius:3px;background:%s",
+              100 * values[i] / mx, accent))),
+          tags$div(style = "width:72px;text-align:right;padding-left:10px;font-size:13px;color:#333",
+                   sprintf(fmt, values[i]))))))
+}
 
 ui <- fluidPage(
   titlePanel("Romanov_10x — Gene Expression Lookup"),
@@ -61,8 +82,14 @@ ui <- fluidPage(
                          <b>Percentile (global)</b> is the same kind of rank taken across the whole cohort
                          rather than within a single cell type, which is why it is identical in every row
                          and matches the summary above."))),
-        tabPanel("% expressing", br(), plotOutput("pctplot", height = 430)),
-        tabPanel("Mean (expressing cells)", br(), plotOutput("meanplot", height = 430))
+        tabPanel("% expressing", br(),
+                 tags$p(style = "color:#777;font-size:12.5px",
+                        "Percentage of each cell type's cells that detectably express the gene (bars scaled to the largest cell type)."),
+                 uiOutput("pctbars")),
+        tabPanel("Mean (expressing cells)", br(),
+                 tags$p(style = "color:#777;font-size:12.5px",
+                        "Mean log-normalized expression among the expressing cells (bars scaled to the largest cell type)."),
+                 uiOutput("meanbars"))
       )
     )
   )
@@ -182,25 +209,11 @@ server <- function(input, output, session) {
       formatRound(c("pctExpressing", "meanExpressing", "pctWithin", "pctGlobal"), 2)
   })
 
-  output$pctplot <- renderPlot({
-    d <- ctdf(); d <- d[order(d$pctExpressing), ]
-    d$CellType <- factor(d$CellType, levels = d$CellType)
-    ggplot(d, aes(pctExpressing, CellType)) +
-      geom_col(fill = "#3aa37a") +
-      labs(x = "% of cells expressing", y = NULL,
-           title = paste0(g(), " — detection by cell type")) +
-      theme_minimal(base_size = 14)
-  })
+  output$pctbars <- renderUI(
+    htmlBars(ctdf()$CellType, ctdf()$pctExpressing, "%.1f%%", "#3aa37a"))
 
-  output$meanplot <- renderPlot({
-    d <- ctdf(); d <- d[order(d$meanExpressing), ]
-    d$CellType <- factor(d$CellType, levels = d$CellType)
-    ggplot(d, aes(meanExpressing, CellType)) +
-      geom_col(fill = "#3a6ea3") +
-      labs(x = "Mean expression (expressing cells)", y = NULL,
-           title = paste0(g(), " — intensity by cell type")) +
-      theme_minimal(base_size = 14)
-  })
+  output$meanbars <- renderUI(
+    htmlBars(ctdf()$CellType, ctdf()$meanExpressing, "%.2f", "#3a6ea3"))
 }
 
 shinyApp(ui, server)
