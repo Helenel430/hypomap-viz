@@ -1,0 +1,112 @@
+:root {
+  color-scheme: light;
+  font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #fff;
+  color: #333;
+}
+
+#app {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 300px;
+  flex-shrink: 0;
+  padding: 20px;
+  border-right: 1px solid #e3e3e3;
+}
+
+.main {
+  flex: 1;
+  padding: 20px 28px;
+  min-width: 0;
+}
+
+h1 { font-size: 22px; margin: 0 0 18px; }
+h2 { font-size: 20px; margin: 0 0 10px; }
+h3 { font-size: 15px; margin: 18px 0 8px; }
+
+label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+
+input[type="text"] {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+button.primary {
+  margin-top: 8px;
+  padding: 6px 14px;
+  background: #337ab7;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+}
+button.primary:hover { background: #2a659c; }
+
+.suggestions {
+  margin: 4px 0 8px;
+  max-height: 190px;
+  overflow-y: auto;
+  border: 1px solid #e3e3e3;
+  border-radius: 6px;
+}
+.suggestions a {
+  display: block;
+  padding: 5px 10px;
+  text-decoration: none;
+  color: #1a4f8a;
+  border-bottom: 1px solid #f4f4f4;
+  font-size: 13px;
+  cursor: pointer;
+}
+.suggestions .empty { color: #999; font-size: 13px; padding: 4px 0; }
+
+.help {
+  font-size: 12.5px;
+  color: #555;
+  line-height: 1.55;
+  margin-top: 10px;
+}
+
+.summary { font-size: 15px; line-height: 1.7; padding-left: 18px; }
+
+table.ct-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+}
+table.ct-table th, table.ct-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid #eee;
+  text-align: right;
+}
+table.ct-table th:first-child, table.ct-table td:first-child { text-align: left; }
+
+.bar-row { margin: 9px 0; }
+.bar-label { font-size: 13px; color: #333; margin-bottom: 2px; }
+.bar-line { display: flex; align-items: center; }
+.bar-track {
+  flex: 1;
+  background: #eef0f2;
+  border-radius: 3px;
+  height: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.bar-fill { height: 100%; border-radius: 3px; }
+.bar-value { width: 104px; text-align: right; padding-left: 10px; font-size: 13px; }
+.bar-count { width: 96px; text-align: right; font-size: 12px; color: #999; }
+
+.placeholder { color: #999; font-size: 13px; }
