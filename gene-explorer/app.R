@@ -105,22 +105,23 @@ ui <- fluidPage(
       h4("By cell type"),
       tabsetPanel(
         tabPanel("Table", br(), DTOutput("cttable"),
-                 tags$p(style = "color:#777;font-size:12.5px;margin-top:10px;line-height:1.6",
-                   HTML("How to read this table: each row is one cell type.
-                         <b>#Cells</b> is the number of P23 cells belonging to that type, and
-                         <b>#Expressing</b> (with <b>%Expressing</b>) is how many of those cells — and
-                         what fraction of them — detectably express this gene.
-                         <b>Mean expr. (expressing cells)</b> is the gene's average log-normalized
-                         expression, calculated over only the cells that express it, so it reflects how
-                         strongly the gene is expressed when it is on.
-                         <b>Percentile (within cell type)</b> ranks the gene against every other gene
-                         detected in that same cell type by that mean-when-expressed value, so a value of
-                         95 means the gene is expressed more strongly than 95% of the genes active in that
-                         cell type; <b>Top 5% (in cell type)</b> simply flags the genes that reach the
-                         95th percentile or above.
-                         <b>Percentile (global)</b> is the same kind of rank taken across the whole cohort
-                         rather than within a single cell type, which is why it is identical in every row
-                         and matches the summary above."))),
+                 tags$p(style = "color:#777;font-size:12.5px;margin-top:10px;line-height:1.9",
+                   HTML(paste0(
+                     "Each row is one cell type.",
+                     "<br><b>#Cells</b>: number of P23 cells belonging to that type.",
+                     "<br><b>#Expressing</b>, <b>%Expressing</b>: how many of those cells, and what",
+                     " fraction of them, detectably express the gene.",
+                     "<br><b>Mean expr. (expressing cells)</b>: the gene's average log-normalized",
+                     " expression, calculated over only expressing cells, reflecting how strongly the",
+                     " gene is expressed when it is on.",
+                     "<br><b>Percentile (within cell type)</b>: ranks the gene against every other gene",
+                     " detected in the same cell type by its Mean expr. value. A value of 95 means the",
+                     " gene is expressed more strongly than 95% of the genes active in that cell type.",
+                     "<br><b>Top 5% (in cell type)</b>: flags genes that reach the 95th percentile or",
+                     " above within the cell type.",
+                     "<br><b>Percentile (global)</b>: the same rank taken across the whole cohort rather",
+                     " than within a single cell type, so it is identical in every row and matches the",
+                     " summary above.")))),
         tabPanel("% expressing", br(),
                  tags$p(style = "color:#555;font-size:12.5px;line-height:2;margin-bottom:12px",
                         HTML(paste0(
