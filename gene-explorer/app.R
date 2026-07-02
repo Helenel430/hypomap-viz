@@ -138,7 +138,7 @@ ui <- fluidPage(
                           "<br><b>#Expressing</b> = cells within the cell type that carry &ge;1 detected count of the gene.",
                           "<br>Bars are scaled so a <b>full bar = the 99th percentile</b> of all gene &times;",
                           " cell-type means (<b>%.2f</b>); a striped bar with a <b>&#9656;</b> exceeds the",
-                          " scale (read the number)."),
+                          " scale (refer to the Mean expr. value)."),
                           mean_scale))),
                  uiOutput("meanbars"))
       )
