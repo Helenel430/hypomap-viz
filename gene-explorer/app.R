@@ -83,19 +83,45 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       width = 3,
-      textInput("gene_in", "Gene symbol:", value = "Pomc",
-                placeholder = "start typing, e.g. igf"),
+      textInput("gene_in", "Explore a gene:", value = "Pomc",
+                placeholder = "Start typing a gene (e.g. igf)..."),
       uiOutput("suggestions"),
       actionButton("go", "Look up", class = "btn-primary"),
       # let Enter in the text box trigger the Look up button
       tags$script(HTML(
         "document.addEventListener('keydown',function(e){if(e.key==='Enter'&&document.activeElement&&document.activeElement.id==='gene_in'){var b=document.getElementById('go');if(b)b.click();}});")),
       tags$br(), tags$br(),
-      helpText("Type a gene symbol (case-insensitive) and click Look up or press Enter.",
-               sprintf(paste("RNA assay, log-normalized; %s P23 cells across %d cell",
-                             "types — the HypoMap RomanovDev10x subset (P23 only)."),
-                       format(total, big.mark = ","), length(cts)),
-               "Percentile ranks genes by mean expression among expressing cells.")
+      helpText("Search for a gene and click Look up or press Enter."),
+      tags$p(style = "font-size:12.5px;color:#555;line-height:1.55;margin-top:4px",
+             HTML(paste0(
+               "<b>Data:</b> the HypoMap P23-only subset of <b>Romanov_10x</b>, a log-normalized",
+               " single-cell RNA dataset of developing mouse hypothalamus (",
+               format(total, big.mark = ","), " cells, ", length(cts), " cell types)."))),
+      tags$details(
+        style = "font-size:11.5px;color:#555;margin-top:8px",
+        tags$summary(style = "cursor:pointer;font-weight:600;color:#337ab7",
+                     "About the dataset"),
+        tags$div(style = "margin-top:8px;line-height:1.6", HTML(paste0(
+          "<b>Organism:</b> Mus musculus (mouse)<br>",
+          "<b>Assay:</b> single-cell RNA-seq (10x Genomics; Illumina HiSeq 4000)<br>",
+          "<b>Expression unit:</b> log-normalized (from 10x UMI counts)<br>",
+          "<b>Developmental stages:</b> E15.5, E17.5, P0, P2, P10, P23 (this app uses P23 only)<br>",
+          "<b>Samples / replicates:</b> 3 sequencing libraries across the stages; P23 is a single library (",
+          format(total, big.mark = ","), " cells)<br>",
+          "<b>Comparisons:</b> the source study spans developmental stages; this P23-only subset has no",
+          " experimental comparison, so use it to contrast cell types<br>",
+          "<b>Populations:</b> ectodermal lineage; 9 glial + 33 neuronal subtypes in the full study, ",
+          length(cts), " cell types in this P23 subset<br>",
+          "<b>Citation:</b> Romanov RA, Tretiakov EO, Kastriti ME, et al. Molecular design of",
+          " hypothalamus development. <i>Nature</i> 2020;582:246-252."))),
+        tags$div(style = "margin-top:10px;display:flex;flex-wrap:wrap;gap:5px",
+          tags$a(href = "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE132730",
+                 target = "_blank", rel = "noopener", class = "btn btn-default btn-xs", "NCBI GEO"),
+          tags$a(href = "https://doi.org/10.1038/s41586-020-2266-0",
+                 target = "_blank", rel = "noopener", class = "btn btn-default btn-xs", "Paper (DOI)"),
+          tags$a(href = "https://pubmed.ncbi.nlm.nih.gov/32499648/",
+                 target = "_blank", rel = "noopener", class = "btn btn-default btn-xs", "PubMed"))
+      )
     ),
     mainPanel(
       width = 9,
