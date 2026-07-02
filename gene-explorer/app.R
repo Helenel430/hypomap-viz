@@ -22,11 +22,10 @@ mean_max <- max(stats$byct$mean_expressing, na.rm = TRUE)
 
 # Horizontal bar chart drawn as plain HTML/CSS — no R graphics device needed,
 # so it renders reliably everywhere. Bars use an ABSOLUTE scale (0..maxval),
-# with a header row of column titles (hover for definitions) and the raw
-# expressing-cell count (#Expressing, in grey).
+# with a header row of column titles and the raw expressing-cell count
+# (#Expressing, in grey). Calculations are explained in each tab's caption.
 htmlBars <- function(labels, values, counts, maxval, fmt = "%.2f", accent = "#3a6ea3",
-                     valueTitle = "Value", countTitle = "#Expressing",
-                     valueTip = "", countTip = "") {
+                     valueTitle = "Value", countTitle = "#Expressing") {
   keep <- !is.na(values)
   labels <- labels[keep]; values <- values[keep]; counts <- counts[keep]
   if (length(values) == 0 || max(values) <= 0)
@@ -35,14 +34,14 @@ htmlBars <- function(labels, values, counts, maxval, fmt = "%.2f", accent = "#3a
   ord <- order(values, decreasing = TRUE)
   labels <- labels[ord]; values <- values[ord]; counts <- counts[ord]
   valW <- "104px"; cntW <- "96px"
-  hcell <- "white-space:nowrap;cursor:help;text-decoration:underline dotted"
+  hcell <- "white-space:nowrap"
   header <- tags$div(
     style = "display:flex;align-items:flex-end;font-size:11.5px;font-weight:700;color:#555;border-bottom:1px solid #e3e3e3;padding-bottom:5px;margin-bottom:4px",
     tags$div(style = "flex:1", "Cell type"),
     tags$div(style = sprintf("width:%s;text-align:right;padding-left:10px;%s", valW, hcell),
-             title = valueTip, valueTitle),
+             valueTitle),
     tags$div(style = sprintf("width:%s;text-align:right;%s", cntW, hcell),
-             title = countTip, countTitle))
+             countTitle))
   rows <- lapply(seq_along(values), function(i)
     tags$div(style = "margin:9px 0",
       tags$div(style = "font-size:13px;color:#333;margin-bottom:2px", labels[i]),
@@ -100,8 +99,23 @@ ui <- fluidPage(
                          <b>Percentile (global)</b> is the same kind of rank taken across the whole cohort
                          rather than within a single cell type, which is why it is identical in every row
                          and matches the summary above."))),
-        tabPanel("% expressing", br(), uiOutput("pctbars")),
-        tabPanel("Mean (expressing cells)", br(), uiOutput("meanbars"))
+        tabPanel("% expressing", br(),
+                 tags$p(style = "color:#555;font-size:12.5px;margin-bottom:12px",
+                        HTML(paste0(
+                          "<b>%Expressing</b> = cells of the type with &ge;1 detected count of the gene",
+                          " &divide; all cells of the type &times; 100 &nbsp;(that is,",
+                          " <b>#Expressing &divide; #Cells</b>). Each bar is drawn on an absolute",
+                          " <b>0&ndash;100%</b> scale (a full bar = 100% of the cell type)."))),
+                 uiOutput("pctbars")),
+        tabPanel("Mean (expressing cells)", br(),
+                 tags$p(style = "color:#555;font-size:12.5px;margin-bottom:12px",
+                        HTML(sprintf(paste0(
+                          "<b>Mean (expressing cells)</b> = log-normalized expression summed over the",
+                          " cells that express the gene &divide; <b>#Expressing</b> (non-expressing cells",
+                          " are excluded). Each bar is measured out of a full-scale value of <b>%.2f</b>",
+                          " &mdash; the largest mean-when-expressed value reached by any gene in any cell",
+                          " type in this dataset."), mean_max))),
+                 uiOutput("meanbars"))
       )
     )
   )
@@ -224,19 +238,12 @@ server <- function(input, output, session) {
   output$pctbars <- renderUI(
     htmlBars(ctdf()$CellType, ctdf()$pctExpressing, ctdf()$nExpressing,
              maxval = 100, fmt = "%.1f%%", accent = "#3aa37a",
-             valueTitle = "%Expressing", countTitle = "#Expressing",
-             valueTip = paste("Percentage of this cell type's cells with ≥1 detected count",
-                              "of the gene, i.e. #Expressing ÷ #Cells × 100.",
-                              "Absolute 0–100% scale."),
-             countTip = "Number of cells of this type with ≥1 detected count of the gene."))
+             valueTitle = "%Expressing", countTitle = "#Expressing"))
 
   output$meanbars <- renderUI(
     htmlBars(ctdf()$CellType, ctdf()$meanExpressing, ctdf()$nExpressing,
              maxval = mean_max, fmt = "%.2f", accent = "#3a6ea3",
-             valueTitle = "Mean expr.", countTitle = "#Expressing",
-             valueTip = sprintf(paste("Mean log-normalized expression across only the cells that express",
-                                      "the gene. Bars on a fixed 0–%.2f scale (dataset max)."), mean_max),
-             countTip = "Number of cells of this type with ≥1 detected count of the gene."))
+             valueTitle = "Mean expr.", countTitle = "#Expressing"))
 }
 
 shinyApp(ui, server)
