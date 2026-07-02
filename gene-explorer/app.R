@@ -16,9 +16,11 @@ total <- stats$total_cells
 cts   <- stats$celltypes
 # genes detected in >=1 cell — the reference set for the global percentile
 n_expressed <- sum(stats$global$n_expressing > 0)
-# absolute-scale reference for the mean-expression bars: the largest
-# mean-when-expressed value anywhere in the dataset
-mean_max <- max(stats$byct$mean_expressing, na.rm = TRUE)
+# scale reference for the mean-expression bars: the 99th percentile of all
+# gene x cell-type mean-when-expressed values (robust to outliers like Malat1).
+# Values above it cap the bar and are flagged as over-scale.
+mean_scale <- as.numeric(quantile(
+  stats$byct$mean_expressing[stats$byct$n_expressing > 0], 0.99, na.rm = TRUE))
 
 # Horizontal bar chart drawn as plain HTML/CSS — no R graphics device needed,
 # so it renders reliably everywhere. Bars use an ABSOLUTE scale (0..maxval),
@@ -42,17 +44,30 @@ htmlBars <- function(labels, values, counts, maxval, fmt = "%.2f", accent = "#3a
              valueTitle),
     tags$div(style = sprintf("width:%s;text-align:right;%s", cntW, hcell),
              countTitle))
-  rows <- lapply(seq_along(values), function(i)
+  rows <- lapply(seq_along(values), function(i) {
+    over <- isTRUE(values[i] > maxval)                 # value exceeds the scale?
+    w    <- min(100, 100 * values[i] / maxval)
+    fill <- tags$div(style = sprintf(
+      "width:%.1f%%;height:100%%;border-radius:3px;background:%s", w, accent))
+    # striped cap on the right end signals the bar runs off the scale
+    cap  <- if (over) tags$div(style = sprintf(paste0(
+      "position:absolute;top:0;right:0;height:100%%;width:16px;border-radius:0 3px 3px 0;",
+      "background:repeating-linear-gradient(45deg,%s,%s 3px,#fff 3px,#fff 6px)"),
+      accent, accent)) else NULL
+    track <- tags$div(
+      style = "flex:1;background:#eef0f2;border-radius:3px;height:16px;position:relative;overflow:hidden",
+      fill, cap)
+    valcell <- tags$div(
+      style = sprintf("width:%s;text-align:right;padding-left:10px;font-size:13px;color:%s;%s",
+                      valW, if (over) accent else "#333", if (over) "font-weight:600" else ""),
+      if (over) HTML(paste0("&#9656; ", sprintf(fmt, values[i]))) else sprintf(fmt, values[i]))
+    cntcell <- tags$div(
+      style = sprintf("width:%s;text-align:right;font-size:12px;color:#999", cntW),
+      format(counts[i], big.mark = ","))
     tags$div(style = "margin:9px 0",
       tags$div(style = "font-size:13px;color:#333;margin-bottom:2px", labels[i]),
-      tags$div(style = "display:flex;align-items:center",
-        tags$div(style = "flex:1;background:#eef0f2;border-radius:3px;height:16px",
-          tags$div(style = sprintf("width:%.1f%%;height:100%%;border-radius:3px;background:%s",
-                                   min(100, 100 * values[i] / maxval), accent))),
-        tags$div(style = sprintf("width:%s;text-align:right;padding-left:10px;font-size:13px;color:#333", valW),
-                 sprintf(fmt, values[i])),
-        tags$div(style = sprintf("width:%s;text-align:right;font-size:12px;color:#999", cntW),
-                 format(counts[i], big.mark = ",")))))
+      tags$div(style = "display:flex;align-items:center", track, valcell, cntcell))
+  })
   tags$div(style = "margin-top:6px", header, rows)
 }
 
@@ -112,9 +127,11 @@ ui <- fluidPage(
                         HTML(sprintf(paste0(
                           "<b>Mean (expressing cells)</b> = log-normalized expression summed over the",
                           " cells that express the gene &divide; <b>#Expressing</b> (non-expressing cells",
-                          " are excluded). Each bar is measured out of a full-scale value of <b>%.2f</b>",
-                          " &mdash; the largest mean-when-expressed value reached by any gene in any cell",
-                          " type in this dataset."), mean_max))),
+                          " excluded). Bars are scaled so a <b>full bar = the 99th percentile</b> of all",
+                          " gene &times; cell-type mean values (<b>%.2f</b>) &mdash; chosen over the true",
+                          " maximum so outliers don't squash everything else. A striped bar with a",
+                          " <b>&#9656;</b> marker means the value runs past the scale (read the number)."),
+                          mean_scale))),
                  uiOutput("meanbars"))
       )
     )
@@ -242,7 +259,7 @@ server <- function(input, output, session) {
 
   output$meanbars <- renderUI(
     htmlBars(ctdf()$CellType, ctdf()$meanExpressing, ctdf()$nExpressing,
-             maxval = mean_max, fmt = "%.2f", accent = "#3a6ea3",
+             maxval = mean_scale, fmt = "%.2f", accent = "#3a6ea3",
              valueTitle = "Mean expr.", countTitle = "#Expressing"))
 }
 
