@@ -21,9 +21,12 @@ n_expressed <- sum(stats$global$n_expressing > 0)
 mean_max <- max(stats$byct$mean_expressing, na.rm = TRUE)
 
 # Horizontal bar chart drawn as plain HTML/CSS — no R graphics device needed,
-# so it renders reliably everywhere. Bars use an ABSOLUTE scale (0..maxval);
-# each bar also shows the raw count of expressing cells (#Expressing, in grey).
-htmlBars <- function(labels, values, counts, maxval, fmt = "%.2f", accent = "#3a6ea3") {
+# so it renders reliably everywhere. Bars use an ABSOLUTE scale (0..maxval),
+# with a header row of column titles (hover for definitions) and the raw
+# expressing-cell count (#Expressing, in grey).
+htmlBars <- function(labels, values, counts, maxval, fmt = "%.2f", accent = "#3a6ea3",
+                     valueTitle = "Value", countTitle = "#Expressing",
+                     valueTip = "", countTip = "") {
   keep <- !is.na(values)
   labels <- labels[keep]; values <- values[keep]; counts <- counts[keep]
   if (length(values) == 0 || max(values) <= 0)
@@ -31,20 +34,27 @@ htmlBars <- function(labels, values, counts, maxval, fmt = "%.2f", accent = "#3a
                     "Not expressed in any cell type."))
   ord <- order(values, decreasing = TRUE)
   labels <- labels[ord]; values <- values[ord]; counts <- counts[ord]
-  tags$div(style = "margin-top:6px",
-    lapply(seq_along(values), function(i)
-      tags$div(style = "margin:9px 0",
-        tags$div(style = "font-size:13px;color:#333;margin-bottom:2px", labels[i]),
-        tags$div(style = "display:flex;align-items:center",
-          tags$div(style = "flex:1;background:#eef0f2;border-radius:3px;height:16px",
-            tags$div(style = sprintf(
-              "width:%.1f%%;height:100%%;border-radius:3px;background:%s",
-              min(100, 100 * values[i] / maxval), accent))),
-          tags$div(style = "width:66px;text-align:right;padding-left:10px;font-size:13px;color:#333",
-                   sprintf(fmt, values[i])),
-          tags$div(style = "width:64px;text-align:right;font-size:12px;color:#999",
-                   title = "cells expressing (#Expressing)",
-                   format(counts[i], big.mark = ","))))))
+  valW <- "104px"; cntW <- "96px"
+  hcell <- "white-space:nowrap;cursor:help;text-decoration:underline dotted"
+  header <- tags$div(
+    style = "display:flex;align-items:flex-end;font-size:11.5px;font-weight:700;color:#555;border-bottom:1px solid #e3e3e3;padding-bottom:5px;margin-bottom:4px",
+    tags$div(style = "flex:1", "Cell type"),
+    tags$div(style = sprintf("width:%s;text-align:right;padding-left:10px;%s", valW, hcell),
+             title = valueTip, valueTitle),
+    tags$div(style = sprintf("width:%s;text-align:right;%s", cntW, hcell),
+             title = countTip, countTitle))
+  rows <- lapply(seq_along(values), function(i)
+    tags$div(style = "margin:9px 0",
+      tags$div(style = "font-size:13px;color:#333;margin-bottom:2px", labels[i]),
+      tags$div(style = "display:flex;align-items:center",
+        tags$div(style = "flex:1;background:#eef0f2;border-radius:3px;height:16px",
+          tags$div(style = sprintf("width:%.1f%%;height:100%%;border-radius:3px;background:%s",
+                                   min(100, 100 * values[i] / maxval), accent))),
+        tags$div(style = sprintf("width:%s;text-align:right;padding-left:10px;font-size:13px;color:#333", valW),
+                 sprintf(fmt, values[i])),
+        tags$div(style = sprintf("width:%s;text-align:right;font-size:12px;color:#999", cntW),
+                 format(counts[i], big.mark = ",")))))
+  tags$div(style = "margin-top:6px", header, rows)
 }
 
 ui <- fluidPage(
@@ -90,19 +100,8 @@ ui <- fluidPage(
                          <b>Percentile (global)</b> is the same kind of rank taken across the whole cohort
                          rather than within a single cell type, which is why it is identical in every row
                          and matches the summary above."))),
-        tabPanel("% expressing", br(),
-                 tags$p(style = "color:#777;font-size:12.5px",
-                        HTML(paste("Percentage of each cell type's cells that detectably express the gene,",
-                                   "on an absolute <b>0&ndash;100%</b> scale. The grey number after each bar",
-                                   "is the raw count of expressing cells (#Expressing)."))),
-                 uiOutput("pctbars")),
-        tabPanel("Mean (expressing cells)", br(),
-                 tags$p(style = "color:#777;font-size:12.5px",
-                        HTML(sprintf(paste("Mean log-normalized expression among expressing cells, on a fixed",
-                                           "<b>0&ndash;%.2f</b> scale (the highest mean-when-expressed value in the",
-                                           "dataset). The grey number is the count of expressing cells (#Expressing)."),
-                                     mean_max))),
-                 uiOutput("meanbars"))
+        tabPanel("% expressing", br(), uiOutput("pctbars")),
+        tabPanel("Mean (expressing cells)", br(), uiOutput("meanbars"))
       )
     )
   )
@@ -224,11 +223,20 @@ server <- function(input, output, session) {
 
   output$pctbars <- renderUI(
     htmlBars(ctdf()$CellType, ctdf()$pctExpressing, ctdf()$nExpressing,
-             maxval = 100, fmt = "%.1f%%", accent = "#3aa37a"))
+             maxval = 100, fmt = "%.1f%%", accent = "#3aa37a",
+             valueTitle = "%Expressing", countTitle = "#Expressing",
+             valueTip = paste("Percentage of this cell type's cells with ≥1 detected count",
+                              "of the gene, i.e. #Expressing ÷ #Cells × 100.",
+                              "Absolute 0–100% scale."),
+             countTip = "Number of cells of this type with ≥1 detected count of the gene."))
 
   output$meanbars <- renderUI(
     htmlBars(ctdf()$CellType, ctdf()$meanExpressing, ctdf()$nExpressing,
-             maxval = mean_max, fmt = "%.2f", accent = "#3a6ea3"))
+             maxval = mean_max, fmt = "%.2f", accent = "#3a6ea3",
+             valueTitle = "Mean expr.", countTitle = "#Expressing",
+             valueTip = sprintf(paste("Mean log-normalized expression across only the cells that express",
+                                      "the gene. Bars on a fixed 0–%.2f scale (dataset max)."), mean_max),
+             countTip = "Number of cells of this type with ≥1 detected count of the gene."))
 }
 
 shinyApp(ui, server)
