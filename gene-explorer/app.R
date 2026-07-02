@@ -84,14 +84,14 @@ ui <- fluidPage(
     sidebarPanel(
       width = 3,
       textInput("gene_in", "Explore a gene:", value = "Pomc",
-                placeholder = "Start typing a gene (e.g. igf)..."),
+                placeholder = "Start typing a gene (case-insensitive)..."),
       uiOutput("suggestions"),
       actionButton("go", "Look up", class = "btn-primary"),
       # let Enter in the text box trigger the Look up button
       tags$script(HTML(
         "document.addEventListener('keydown',function(e){if(e.key==='Enter'&&document.activeElement&&document.activeElement.id==='gene_in'){var b=document.getElementById('go');if(b)b.click();}});")),
       tags$br(), tags$br(),
-      helpText("Search for a gene and click Look up or press Enter."),
+      helpText("Search for a gene (e.g. igf) and click Look up or press Enter."),
       tags$p(style = "font-size:12.5px;color:#555;line-height:1.55;margin-top:4px",
              HTML(paste0(
                "<b>Data:</b> the HypoMap P23-only subset of <b>Romanov_10x</b>, a log-normalized",
