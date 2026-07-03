@@ -3,7 +3,7 @@
 An interactive [Shiny](https://shiny.posit.co/) explorer for the **Romanov_10x**
 mouse hypothalamus single-cell dataset, built with
 [ShinyCell](https://github.com/SGDDNB/ShinyCell). Type a gene and see its
-expression painted on the UMAP, compare cell types, view proportions, and more —
+expression, compare cell types, view proportions, and more —
 all running locally in your browser.
 
 **Dataset:** GEO [GSE132730](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE132730)
@@ -53,16 +53,7 @@ remotes::install_url(
    shiny::runApp("shinyApp")
    ```
 
-## What you can explore
-
-- **Gene expression on the UMAP / tSNE** for any gene
-- **Color by** cell type (`Annotation`), broad `Class`, `cluster`, developmental
-  `Age` (E15–P23), or `SampleID`
-- **Two-gene co-expression**, violin plots, and a gene-vs-cell-type bubble plot
-  (the interactive version of the expression-by-cell-type table)
-- **Cell-type proportions** across groups
-
-## Gene-expression lookup (lightweight, no UMAP/tSNE)
+## Gene-expression lookup (lightweight)
 
 A second, much lighter app for pure expression questions — type a gene and get:
 
